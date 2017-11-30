@@ -11,19 +11,27 @@ use phpDocumentor\Reflection\ReflectionAbstract;
 
 /**
  * @param string $directory
+ * @param string $ignore
  *
  * @return array|\WP_Error
  */
-function get_wp_files( $directory ) {
+function get_wp_files( $directory, $ignore = '' ) {
 	$iterableFiles = new \RecursiveIteratorIterator(
 		new \RecursiveDirectoryIterator( $directory )
 	);
 	$files         = array();
+	$ignore        = array_map( 'trim', array_filter( explode( ',', $ignore ) ) );
 
 	try {
 		foreach ( $iterableFiles as $file ) {
 			if ( 'php' !== $file->getExtension() ) {
 				continue;
+			}
+
+			foreach ( $ignore as $pattern ) {
+				if ( preg_match( "#$pattern#i", $file->getPathname() ) ) {
+					continue 2;
+				}
 			}
 
 			$files[] = $file->getPathname();
