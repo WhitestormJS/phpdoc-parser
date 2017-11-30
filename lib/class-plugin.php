@@ -187,6 +187,22 @@ class Plugin {
 				)
 			);
 		}
+
+		if ( ! taxonomy_exists( 'wp-parser-version' ) ) {
+
+			register_taxonomy(
+				'wp-parser-version',
+				$object_types,
+				array(
+					'hierarchical'          => true,
+					'label'                 => __( 'Versions', 'wp-parser' ),
+					'public'                => true,
+					'rewrite'               => array( 'slug' => 'version' ),
+					'sort'                  => false,
+					'update_count_callback' => '_update_post_term_count',
+				)
+			);
+		}
 	}
 
 	/**
