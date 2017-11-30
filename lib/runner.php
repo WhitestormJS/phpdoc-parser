@@ -47,27 +47,51 @@ function get_wp_files( $directory, $ignore = '' ) {
 }
 
 /**
+ * Extracts the version from $path where the first directory is the version number/name.
+ *
+ * @param string $path
+ * @return string|false
+ */
+function get_version( $path ) {
+	if ( preg_match( sprintf( '#^%1$s?([^%1$s]+)%1$s#', DIRECTORY_SEPARATOR ), $path, $matches ) ) {
+		return $matches[1];
+	}
+
+	return false;
+}
+
+/**
  * @param array  $files
  * @param string $root
+ * @param bool   $use_versions
  *
  * @return array
  */
-function parse_files( $files, $root ) {
+function parse_files( $files, $root, $use_versions = false ) {
 	$output = array();
 
 	foreach ( $files as $filename ) {
-		$file = new File_Reflector( $filename );
+		$file         = new File_Reflector( $filename );
+		$version      = false;
+		$version_root = $root;
 
 		$path = ltrim( substr( $filename, strlen( $root ) ), DIRECTORY_SEPARATOR );
+		if ( $use_versions ) {
+			$version      = get_version( $filename );
+			$path         = ltrim( substr( $path, strlen( $version ) ), DIRECTORY_SEPARATOR );
+			$version_root = $version_root . DIRECTORY_SEPARATOR . $version;
+		}
+
 		$file->setFilename( $path );
 
 		$file->process();
 
 		// TODO proper exporter
 		$out = array(
-			'file' => export_docblock( $file ),
-			'path' => str_replace( DIRECTORY_SEPARATOR, '/', $file->getFilename() ),
-			'root' => $root,
+			'file'    => export_docblock( $file ),
+			'path'    => str_replace( DIRECTORY_SEPARATOR, '/', $file->getFilename() ),
+			'root'    => $version_root,
+			'version' => $version,
 		);
 
 		if ( ! empty( $file->uses ) ) {

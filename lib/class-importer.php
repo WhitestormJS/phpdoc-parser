@@ -42,6 +42,13 @@ class Importer implements LoggerAwareInterface {
 	public $taxonomy_package;
 
 	/**
+	 * Taxonomy name for an item's version.
+	 *
+	 * @var string
+	 */
+	public $taxonomy_version;
+
+	/**
 	 * Post type name for functions
 	 *
 	 * @var string
@@ -104,6 +111,7 @@ class Importer implements LoggerAwareInterface {
 				'taxonomy_namespace'     => 'wp-parser-namespace',
 				'taxonomy_package'       => 'wp-parser-package',
 				'taxonomy_since_version' => 'wp-parser-since',
+				'taxonomy_version'       => 'wp-parser-version',
 			)
 		);
 
@@ -279,6 +287,18 @@ class Importer implements LoggerAwareInterface {
 			return;
 		}
 
+		// Maybe add version to version taxonomy.
+		if ( $file['version'] ) {
+			$version_slug = sanitize_title( $file['version'] );
+
+			$version_term = $this->insert_term( $file['version'], $this->taxonomy_version, array( 'slug' => $version_slug ) );
+
+			if ( is_wp_error( $version_term ) ) {
+				$this->errors[] = sprintf( 'Problem creating version tax item "%1$s" for %2$s: %3$s', $version_slug, $file['version'], $term->get_error_message() );
+				return;
+			}
+		}
+
 		// Detect deprecated file
 		$deprecated_file = false;
 		if ( isset( $file['uses']['functions'] ) ) {
@@ -296,6 +316,7 @@ class Importer implements LoggerAwareInterface {
 		$this->file_meta = array(
 			'docblock'   => $file['file'], // File docblock
 			'term_id'    => $file['path'], // Term name in the file taxonomy is the file name
+			'version_id' => $file['version'], // Version name in the version taxonomy
 			'deprecated' => $deprecated_file, // Deprecation status
 		);
 
@@ -710,6 +731,13 @@ class Importer implements LoggerAwareInterface {
 		$added_item = did_action( 'added_term_relationship' );
 		wp_set_object_terms( $post_id, $this->file_meta['term_id'], $this->taxonomy_file );
 		if ( did_action( 'added_term_relationship' ) > $added_item ) {
+			$anything_updated[] = true;
+		}
+
+		// Set version taxonomy
+		$added_item_version = did_action( 'added_term_relationship' );
+		wp_set_object_terms( $post_id, $this->file_meta['version_id'], $this->taxonomy_version );
+		if ( did_action( 'added_term_relationship' ) > $added_item_version ) {
 			$anything_updated[] = true;
 		}
 

@@ -13,7 +13,7 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Generate a JSON file containing the PHPDoc markup, and save to filesystem.
 	 *
-	 * @synopsis <directory> [<output_file>] [--ignore=<pattern>]
+	 * @synopsis <directory> [<output_file>] [--ignore=<pattern>] [--use-versions]
 	 *
 	 * @param array $args
 	 * @param array $assoc_args
@@ -22,7 +22,7 @@ class Command extends WP_CLI_Command {
 		$directory   = realpath( $args[0] );
 		$output_file = empty( $args[1] ) ? 'phpdoc.json' : $args[1];
 		$ignore      = isset( $assoc_args['ignore'] ) ? $assoc_args['ignore'] : '';
-		$json        = $this->_get_phpdoc_data( $directory, $ignore );
+		$json        = $this->_get_phpdoc_data( $directory, 'json', $ignore, isset( $assoc_args['use-versions'] ) );
 		$result      = file_put_contents( $output_file, $json );
 		WP_CLI::line();
 
@@ -73,7 +73,7 @@ class Command extends WP_CLI_Command {
 	 * Generate JSON containing the PHPDoc markup, convert it into WordPress posts, and insert into DB.
 	 *
 	 * @subcommand create
-	 * @synopsis   <directory> [--quick] [--import-internal] [--user] [--ignore=<pattern>]
+	 * @synopsis   <directory> [--quick] [--import-internal] [--user] [--ignore=<pattern>] [--use-versions]
 	 *
 	 * @param array $args
 	 * @param array $assoc_args
@@ -92,19 +92,24 @@ class Command extends WP_CLI_Command {
 		$ignore = isset( $assoc_args['ignore'] ) ? $assoc_args['ignore'] : '';
 
 			// Import data
-		$this->_do_import( $this->_get_phpdoc_data( $directory, 'array', $ignore ), isset( $assoc_args['quick'] ), isset( $assoc_args['import-internal'] ) );
+		$this->_do_import(
+			$this->_get_phpdoc_data( $directory, 'array', $ignore, isset( $assoc_args['use-versions'] ) ),
+			isset( $assoc_args['quick'] ),
+			isset( $assoc_args['import-internal'] )
+		);
 	}
 
 	/**
 	 * Generate the data from the PHPDoc markup.
 	 *
-	 * @param string $path   Directory or file to scan for PHPDoc.
-	 * @param string $format What format the data is returned in: [json|array].
-	 * @param string $ignore Comma separated directory or file patterns to ignore.
+	 * @param string $path         Directory or file to scan for PHPDoc.
+	 * @param string $format       What format the data is returned in: [json|array].
+	 * @param string $ignore       Comma separated directory or file patterns to ignore.
+	 * @param bool   $use_versions If true uses the top level directories in $path as the version numbers.
 	 *
 	 * @return string|array
 	 */
-	protected function _get_phpdoc_data( $path, $format = 'json', $ignore = '' ) {
+	protected function _get_phpdoc_data( $path, $format = 'json', $ignore = '', $use_versions = false ) {
 		WP_CLI::line( sprintf( 'Extracting PHPDoc from %1$s. This may take a few minutes...', $path ) );
 		$is_file = is_file( $path );
 		$files   = $is_file ? array( $path ) : get_wp_files( $path, $ignore );
@@ -115,7 +120,7 @@ class Command extends WP_CLI_Command {
 			exit;
 		}
 
-		$output = parse_files( $files, $path );
+		$output = parse_files( $files, $path, $use_versions );
 
 		if ( 'json' == $format ) {
 			return json_encode( $output, JSON_PRETTY_PRINT );
