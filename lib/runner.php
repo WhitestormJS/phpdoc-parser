@@ -77,7 +77,7 @@ function parse_files( $files, $root, $use_versions = false ) {
 
 		$path = ltrim( substr( $filename, strlen( $root ) ), DIRECTORY_SEPARATOR );
 		if ( $use_versions ) {
-			$version      = get_version( $filename );
+			$version      = get_version( $path );
 			$path         = ltrim( substr( $path, strlen( $version ) ), DIRECTORY_SEPARATOR );
 			$version_root = $version_root . DIRECTORY_SEPARATOR . $version;
 		}

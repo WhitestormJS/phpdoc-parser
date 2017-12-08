@@ -538,8 +538,8 @@ class Importer implements LoggerAwareInterface {
 		$post_data   = wp_parse_args(
 			$arg_overrides,
 			array(
-				'post_content' => $data['doc']['long_description'],
-				'post_excerpt' => $data['doc']['description'],
+				'post_content' => esc_html( $data['doc']['long_description'] ),
+				'post_excerpt' => esc_html( $data['doc']['description'] ),
 				'post_name'    => $slug,
 				'post_parent'  => (int) $parent_post_id,
 				'post_status'  => 'publish',
