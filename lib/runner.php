@@ -10,17 +10,25 @@ use phpDocumentor\Reflection\FunctionReflector\ArgumentReflector;
 use phpDocumentor\Reflection\ReflectionAbstract;
 
 /**
- * @param string $directory
- * @param string $ignore
+ * Get a list of files to parse and import.
+ *
+ * @param string $directory The directory to search in.
+ * @param string $ignore    A comma separated list of regex patterns to ignore.
+ * @param string $filter    A comma separated list of regex patterns to match.
  *
  * @return array|\WP_Error
  */
-function get_wp_files( $directory, $ignore = '' ) {
-	$iterableFiles = new \RecursiveIteratorIterator(
-		new \RecursiveDirectoryIterator( $directory )
+function get_wp_files( $directory, $ignore = '', $filter = '' ) {
+	$ignore        = array_map( 'trim', array_filter( explode( ',', $ignore ) ) );
+	$filter        = array_map( 'trim', array_filter( explode( ',', $filter ) ) );
+	$iterableFiles = new \RegexIterator(
+		new \RecursiveIteratorIterator(
+			new \RecursiveDirectoryIterator( $directory )
+		),
+		sprintf( '#(%s)#i', implode( '|', $filter ) ),
+		\RegexIterator::MATCH
 	);
 	$files         = array();
-	$ignore        = array_map( 'trim', array_filter( explode( ',', $ignore ) ) );
 
 	try {
 		foreach ( $iterableFiles as $file ) {
