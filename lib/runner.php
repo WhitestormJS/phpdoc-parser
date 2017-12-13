@@ -21,14 +21,18 @@ use phpDocumentor\Reflection\ReflectionAbstract;
 function get_wp_files( $directory, $ignore = '', $filter = '' ) {
 	$ignore        = array_map( 'trim', array_filter( explode( ',', $ignore ) ) );
 	$filter        = array_map( 'trim', array_filter( explode( ',', $filter ) ) );
-	$iterableFiles = new \RegexIterator(
-		new \RecursiveIteratorIterator(
-			new \RecursiveDirectoryIterator( $directory )
-		),
-		sprintf( '#(%s)#i', implode( '|', $filter ) ),
-		\RegexIterator::MATCH
+	$iterableFiles = new \RecursiveIteratorIterator(
+		new \RecursiveDirectoryIterator( $directory )
 	);
 	$files         = array();
+
+	if ( ! empty( $filter ) ) {
+		$iterableFiles = $iterableFiles = new \RegexIterator(
+			$iterableFiles,
+			sprintf( '#(%s)#i', implode( '|', $filter ) ),
+			\RegexIterator::MATCH
+		);
+	}
 
 	try {
 		foreach ( $iterableFiles as $file ) {
