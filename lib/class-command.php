@@ -112,10 +112,9 @@ class Command extends WP_CLI_Command {
 	/**
 	 * Generate the data from the PHPDoc markup.
 	 *
-	 * @param string $path         Directory or file to scan for PHPDoc.
-	 * @param string $format       What format the data is returned in: [json|array].
-	 * @param array  $args         Additional arguments, ignore, filter and use-versions.
-	 * @param bool   $use_versions If true uses the top level directories in $path as the version numbers.
+	 * @param string $path   Directory or file to scan for PHPDoc.
+	 * @param string $format What format the data is returned in: [json|array].
+	 * @param array  $args   Additional arguments, ignore, filter and use-versions.
 	 *
 	 * @return string|array
 	 */
@@ -135,7 +134,7 @@ class Command extends WP_CLI_Command {
 			exit;
 		}
 
-		$output = parse_files( $files, $path, $args['use_versions'] );
+		$output = parse_files( $files, $path, $args['use-versions'] );
 
 		if ( 'json' == $format ) {
 			return json_encode( $output, JSON_PRETTY_PRINT );

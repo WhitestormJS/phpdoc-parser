@@ -65,8 +65,11 @@ function get_wp_files( $directory, $ignore = '', $filter = '' ) {
  * @return string|false
  */
 function get_version( $path ) {
-	if ( preg_match( sprintf( '#^%1$s?([^%1$s]+)%1$s#', DIRECTORY_SEPARATOR ), $path, $matches ) ) {
-		return $matches[1];
+	$path = explode( DIRECTORY_SEPARATOR, $path );
+	$path = array_filter( $path );
+
+	if ( count( $path ) > 1 ) {
+		return array_shift( $path );
 	}
 
 	return false;
